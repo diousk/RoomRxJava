@@ -28,13 +28,9 @@ public class LocalRepositoryImpl implements LocalRepository {
         return couponDAO.getOneCoupon();
     }
     public void insertCoupon(CouponEntity coupon) {
-        executor.execute(() -> {
-            couponDAO.insertCoupon(coupon);
-        });
+        executor.execute(() -> couponDAO.insertCoupon(coupon));
     }
     public void deleteAllCoupons() {
-        executor.execute(() -> {
-            couponDAO.deleteAllCoupons();
-        });
+        executor.execute(() -> couponDAO.deleteAllCoupons());
     }
 }
