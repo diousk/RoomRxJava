@@ -13,6 +13,7 @@ import java.util.List;
 
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
+import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.functions.Consumer;
@@ -56,25 +57,18 @@ public class CouponViewModel extends ViewModel {
     public void getCouponsFromService(){
         //add observable to CompositeDisposable so that it can be dispose when ViewModel is ready to be destroyed
         //Call retrofit client on background thread and update database with response from service using Room
-        compositeDisposable.add(io.reactivex.Observable.just(1)
+        compositeDisposable.add(Observable.just(1)
                 .subscribeOn(Schedulers.computation())
-                .flatMap(i -> { return remoteRepository.getCoupons();}).subscribeOn(Schedulers.io())
-                .subscribe(new Consumer<CouponsList>() {
-                    @Override
-                    public void accept(CouponsList coupons) throws Exception {
-                        for(CouponEntity ce : coupons.getCoupons()){
-                            //database update
-                            localRepository.insertCoupon(ce);
-                        }
+                .flatMap(i -> remoteRepository.getCoupons())
+                .subscribeOn(Schedulers.io())
+                .subscribe(coupons -> {
+                    for(CouponEntity ce : coupons.getCoupons()){
+                        //database update
+                        localRepository.insertCoupon(ce);
                     }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        Log.e("MainActivity", "exception getting coupons", throwable);
-                    }
-                }));
-
+                }, throwable -> Log.e("MainActivity", "exception getting coupons", throwable)));
     }
+
     @Override
     public void onCleared(){
         //prevents memory leaks by disposing pending observable objects
